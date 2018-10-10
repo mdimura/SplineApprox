@@ -7,9 +7,8 @@ Trivial header-only implementation of polynomial spline approximation in C++.
 
 ...
 
-const int Npoints = 1024;
-const int Npieces = 8;
-constexpr unsigned Deg = 2; #Polynomial degree
+const int Npieces = 8;      // Number of polynomials in the spline
+constexpr unsigned Deg = 2; // Polynomial degree
 
 //Discretize the sine function for [-pi/2..pi/2]
 const int Npoints = 1024;
