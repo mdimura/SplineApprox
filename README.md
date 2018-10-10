@@ -1,7 +1,7 @@
-#SplineApprox
+# SplineApprox
 Trivial header-only implementation of polynomial spline approximation in C++.
 
-##Usage:
+## Usage:
 ```C++
 #include "spline.hpp"
 
