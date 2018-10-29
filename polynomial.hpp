@@ -6,13 +6,11 @@
 
 template <unsigned D> class Polynomial
 {
-private:
-	Eigen::Matrix<float, D + 1, 1> c;
-	static Eigen::Matrix<float, D + 1, 1> powers(const float &x);
-
-
-public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+public:
+	Eigen::Matrix<float, D + 1, 1> c;
+
+	static Eigen::Matrix<float, D + 1, 1> powers(const float &x);
 	inline float value(const float &x) const
 	{
 		return c.cwiseProduct(powers(x)).sum();
