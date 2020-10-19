@@ -12,46 +12,32 @@ int main()
 	const int Npieces = 8;      // Number of polynomials in the spline
 	constexpr unsigned Deg = 2; // Polynomial degree
 
-	// Discretize the sine function for [-pi/2..pi/2]
-	const int Npoints = 1024;
+	const int Npoints = 10240;
+	const float pi = atan(1.0f)*4.0f;
+    
+	//Discretize the sine function for [-pi/2..pi/2]
 	Eigen::Matrix2Xf xy(2, Npoints);
-	const float pi = 3.14159f;
-	for (int i = 0; i < Npoints; ++i) {
-		xy(0, i) = -pi * 0.5f + pi * i / (Npoints - 1);
-		xy(1, i) = std::sin(xy(0, i));
-	}
+	xy.row(0) = Eigen::VectorXf::LinSpaced(Npoints, -pi*0.5f, pi*0.5f);
+	xy.row(1) = xy.row(0).array().sin();
 
 	auto start = std::chrono::steady_clock::now();
-	// initialize the spline
+	//initialize the spline
 	Spline<Deg> spline = Spline<Deg>::fromSorted(xy, Npieces);
 	auto diff = std::chrono::steady_clock::now() - start;
 	double dtMs = std::chrono::duration<double, std::milli>(diff).count();
-	// Takes 0.02 ms on i7-4930K CPU
+	//Takes 0.13 ms on i7-4930K CPU
 	cout << "Spline<>::fromSorted() took: " << dtMs << " ms" << endl;
 
 	start = std::chrono::steady_clock::now();
-	float sum = 0.0;
-	for (int j = 0; j < 1000; ++j) {
-		for (int i = 0; i < Npoints; i += 1) {
-			sum += spline.value_unsafe(xy(0, i));
-		}
-	}
+	Eigen::VectorXf approx = xy.row(0).unaryExpr([&](float f){return spline.value_unsafe(f);});
+	float sum = approx.sum();
 	diff = std::chrono::steady_clock::now() - start;
 	dtMs = std::chrono::duration<double, std::milli>(diff).count();
-	// Takes 2.8 ms on i7-4930K CPU
+	//Takes 0.041 ms on i7-4930K CPU
 	cout << "spline.value_unsafe() took: " << dtMs << " ms, sum = " << sum
 	     << endl;
 
-
-	// cout << "x\ty\tspline(x)\tdiff*100\n";
-	cout << std::setprecision(4) << std::fixed;
-	float maxAbsDiff = 0.0f;
-	for (int i = 0; i < Npoints; i++) {
-		float appr = spline.value_unsafe(xy(0, i));
-		float diff = appr - xy(1, i);
-		// cout<<xy(0,i)<<'\t'<<xy(1,i)<<'\t'<<appr<<'\t'<<diff*100.0f<<'\n';
-		maxAbsDiff = std::max(maxAbsDiff, std::fabs(diff));
-	}
+	float maxAbsDiff = (approx.transpose() - xy.row(1)).cwiseAbs().maxCoeff();
 	cout << "maximum absolute diference = " << std::setprecision(8)
 	     << maxAbsDiff << endl;
 	return 0;
